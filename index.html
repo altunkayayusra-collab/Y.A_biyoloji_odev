@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CHLORO QUEST • Biyoloji Fotosentez Macerası</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #041d15;
+            --emerald-glow: #10b981;
+            --lime-glow: #a3e635;
+            --gold-glow: #fbbf24;
+            --cyan-glow: #22d3ee;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-deep);
+            color: #ecfdf5;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, .font-game {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Bioluminescent Glassmorphism */
+        .glass-panel {
+            background: rgba(6, 44, 32, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(52, 211, 153, 0.35);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(16, 185, 129, 0.12);
+        }
+
+        .btn-glow {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: 2px solid #6ee7b7;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(52, 211, 153, 0.65), inset 0 2px 6px rgba(255, 255, 255, 0.4);
+        }
+
+        .btn-glow:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        /* Floating Animations */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+        .animate-float {
+            animation: floatSlow 3.5s ease-in-out infinite;
+        }
+
+        /* Canvas Container */
+        #game-wrapper {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #083828 0%, #031710 100%);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Touch Controls */
+        .dpad-btn {
+            background: rgba(16, 185, 129, 0.22);
+            border: 2px solid rgba(110, 231, 183, 0.45);
+            backdrop-filter: blur(6px);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d1fae5;
+            font-size: 1.35rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: background 0.1s, transform 0.1s;
+        }
+        .dpad-btn:active, .dpad-btn.active {
+            background: rgba(52, 211, 153, 0.55);
+            transform: scale(0.92);
+            border-color: #a7f3d0;
+        }
+
+        .action-btn {
+            background: radial-gradient(circle at 30% 30%, #fbbf24, #d97706);
+            border: 3px solid #fef3c7;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.55), 0 6px 15px rgba(0,0,0,0.5);
+            color: #451a03;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .action-btn:active, .action-btn.active {
+            transform: scale(0.92);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+        }
+
+        /* Custom Scrollbar for modals on small screens */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(4, 29, 21, 0.5);
+            border-radius: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(52, 211, 153, 0.4);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP HUD BAR (Hidden on Start Screen) -->
+    <header id="hud-bar" class="hidden z-20 w-full px-3 py-2 sm:px-5 sm:py-2.5 bg-[#031912]/90 border-b border-emerald-500/30 backdrop-blur-md flex flex-col gap-2 shadow-lg">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <!-- Stage Badge -->
+            <div class="flex items-center gap-2">
+                <span id="stage-badge" class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold tracking-wide bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 shadow-sm">
+                    1. EVRE: TİLAKOİT ZARI
+                </span>
+                <button id="btn-info-toggle" title="Biyoloji İpucu" class="w-8 h-8 rounded-full bg-teal-900/70 hover:bg-teal-800 border border-teal-400/40 flex items-center justify-center text-teal-200 text-sm font-bold transition">
+                    ?
+                </button>
+                <button id="btn-sound-toggle" title="Sesi Aç/Kapat" class="w-8 h-8 rounded-full bg-teal-900/70 hover:bg-teal-800 border border-teal-400/40 flex items-center justify-center text-teal-200 text-sm transition">
+                    🔊
+                </button>
+            </div>
+
+            <!-- Inventory Counters -->
+            <div id="inventory-bar" class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold">
+                <!-- Populated dynamically based on stage -->
+            </div>
+        </div>
+
+        <!-- Objective Banner -->
+        <div class="w-full bg-gradient-to-r from-emerald-950/90 via-teal-900/80 to-emerald-950/90 border border-emerald-400/30 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 overflow-hidden">
+                <span class="text-base sm:text-lg animate-pulse">🎯</span>
+                <p id="objective-text" class="text-xs sm:text-sm text-emerald-100 font-medium truncate">
+                    Görev yükleniyor...
+                </p>
+            </div>
+            <span id="step-counter" class="shrink-0 text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-lime-300 border border-lime-400/30">
+                Adım 1/4
+            </span>
+        </div>
+    </header>
+
+    <!-- MAIN GAME CANVAS WRAPPER -->
+    <main id="game-wrapper">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- FLOATING BIOLOGY FACT TOAST -->
+        <div id="bio-toast" class="pointer-events-none fixed top-28 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-all duration-300 transform -translate-y-2 max-w-[92vw] sm:max-w-md">
+            <div class="bg-[#063727]/95 border border-lime-400/60 text-emerald-50 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3">
+                <span id="toast-icon" class="text-2xl">⚡</span>
+                <p id="toast-msg" class="text-xs sm:text-sm font-medium leading-snug"></p>
+            </div>
+        </div>
+
+        <!-- MOBILE / TOUCH CONTROLS OVERLAY -->
+        <div id="touch-controls" class="hidden fixed bottom-4 inset-x-4 z-20 flex items-end justify-between pointer-events-none">
+            <!-- D-Pad -->
+            <div class="grid grid-cols-3 gap-1.5 w-36 h-36 sm:w-40 sm:h-40 pointer-events-auto opacity-85 hover:opacity-100 transition-opacity">
+                <div></div>
+                <button id="btn-up" class="dpad-btn" aria-label="Yukarı">▲</button>
+                <div></div>
+                <button id="btn-left" class="dpad-btn" aria-label="Sol">◀</button>
+                <div class="rounded-full bg-emerald-950/50 border border-emerald-500/20 flex items-center justify-center text-xs text-emerald-400/60">🌿</div>
+                <button id="btn-right" class="dpad-btn" aria-label="Sağ">▶</button>
+                <div></div>
+                <button id="btn-down" class="dpad-btn" aria-label="Aşağı">▼</button>
+                <div></div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="pointer-events-auto flex flex-col items-center gap-1.5 mb-2 mr-1">
+                <button id="btn-action" class="action-btn w-20 h-20 sm:w-24 sm:h-24 rounded-full flex flex-col items-center justify-center text-xs sm:text-sm leading-tight">
+                    <span class="text-xl sm:text-2xl mb-0.5">✨</span>
+                    <span>ETKİLEŞİM</span>
+                </button>
+                <span class="text-[10px] font-semibold text-emerald-200/80 bg-black/40 px-2 py-0.5 rounded-full">BOŞLUK</span>
+            </div>
+        </div>
+
+        <!-- ==================== 1. START SCREEN MODAL ==================== -->
+        <div id="start-screen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-[#02120d]/85 backdrop-blur-md">
+            <div class="glass-panel rounded-3xl max-w-xl w-full p-6 sm:p-8 text-center relative overflow-hidden custom-scroll max-h-[94vh] overflow-y-auto">
+                <!-- Decorative Glow Orbs -->
+                <div class="absolute -top-16 -left-16 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="absolute -bottom-16 -right-16 w-44 h-44 bg-lime-400/20 rounded-full blur-2xl pointer-events-none"></div>
+
+                <!-- Cute Chloro Mascot SVG -->
+                <div class="mx-auto mb-3 w-24 h-24 sm:w-28 sm:h-28 animate-float flex items-center justify-center">
+                    <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-[0_0_15px_rgba(52,211,153,0.7)]">
+                        <defs>
+                            <radialGradient id="chloroGrad" cx="40%" cy="35%" r="65%">
+                                <stop offset="0%" stop-color="#a3e635"/>
+                                <stop offset="55%" stop-color="#10b981"/>
+                                <stop offset="100%" stop-color="#047857"/>
+                            </radialGradient>
+                        </defs>
+                        <!-- Outer Chloroplast Membrane -->
+                        <ellipse cx="60" cy="62" rx="48" ry="38" fill="url(#chloroGrad)" stroke="#6ee7b7" stroke-width="3.5"/>
+                        <!-- Inner Membrane -->
+                        <ellipse cx="60" cy="62" rx="41" ry="31" fill="none" stroke="#a7f3d0" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>
+                        <!-- Cute Grana Stacks inside cheeks -->
+                        <rect x="24" y="65" width="12" height="4" rx="2" fill="#065f46" opacity="0.5"/>
+                        <rect x="24" y="70" width="12" height="4" rx="2" fill="#065f46" opacity="0.5"/>
+                        <rect x="84" y="65" width="12" height="4" rx="2" fill="#065f46" opacity="0.5"/>
+                        <rect x="84" y="70" width="12" height="4" rx="2" fill="#065f46" opacity="0.5"/>
+                        <!-- Eyes -->
+                        <circle cx="46" cy="55" r="6.5" fill="#022c22"/>
+                        <circle cx="74" cy="55" r="6.5" fill="#022c22"/>
+                        <circle cx="48" cy="53" r="2.3" fill="#ffffff"/>
+                        <circle cx="76" cy="53" r="2.3" fill="#ffffff"/>
+                        <!-- Rosy Cheeks -->
+                        <ellipse cx="37" cy="63" rx="5" ry="3" fill="#fbbf24" opacity="0.55"/>
+                        <ellipse cx="83" cy="63" rx="5" ry="3" fill="#fbbf24" opacity="0.55"/>
+                        <!-- Smile -->
+                        <path d="M 52 65 Q 60 73 68 65" fill="none" stroke="#022c22" stroke-width="3" stroke-linecap="round"/>
+                        <!-- Sprout Antenna -->
+                        <path d="M 60 24 Q 60 12 72 10 Q 68 22 60 24 Z" fill="#a3e635" stroke="#ecfccb" stroke-width="1.5"/>
+                        <path d="M 60 24 Q 56 14 46 15 Q 52 24 60 24 Z" fill="#34d399" stroke="#ecfccb" stroke-width="1.5"/>
+                    </svg>
+                </div>
+
+                <!-- Title & Subtitle -->
+                <h1 class="text-3xl sm:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-emerald-300 to-teal-200 drop-shadow-sm">
+                    🌿 CHLORO QUEST
+                </h1>
+                <p class="mt-1 text-xs sm:text-sm font-bold tracking-widest text-amber-300 uppercase">
+                    BİYOLOJİ • FOTOSENTEZ MACERASI
+                </p>
+
+                <!-- Intro Story -->
+                <div class="mt-4 p-4 rounded-2xl bg-emerald-950/75 border border-emerald-500/30 text-emerald-100 text-sm sm:text-base leading-relaxed">
+                    <p class="font-semibold text-lime-300 mb-1">Kloroplastın içinde maceraya hazır mısın?</p>
+                    <p>
+                        Minik yardımcı <strong>Chloro</strong>'yu yönet. Önce <strong>tilakoitte</strong> ışığa bağımlı evreyi tamamla; sonra ürettiğin <strong>ATP</strong> ve <strong>NADPH</strong>'yi <strong>stromada</strong> kullanarak Calvin döngüsünü bitir.
+                    </p>
+                </div>
+
+                <!-- Controls Info -->
+                <div class="mt-3 p-3.5 rounded-2xl bg-teal-950/60 border border-teal-400/25 text-xs sm:text-sm text-teal-100 flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded bg-emerald-900 border border-emerald-500/40 font-mono text-xs text-lime-300">WASD / Yönler</span>
+                        <span>Hareket</span>
+                    </div>
+                    <span class="hidden sm:inline text-teal-600">•</span>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded bg-amber-900/60 border border-amber-400/40 font-mono text-xs text-amber-300">BOŞLUK</span>
+                        <span>Etkileşim</span>
+                    </div>
+                    <span class="hidden sm:inline text-teal-600">•</span>
+                    <div class="text-teal-200/90">
+                        📱 Telefonda dokunmatik tuşları kullan
+                    </div>
+                </div>
+
+                <!-- Start Button -->
+                <button id="btn-start-game" class="mt-6 w-full sm:w-auto px-8 py-4 rounded-2xl btn-glow text-white font-game text-lg sm:text-xl font-bold tracking-wide cursor-pointer">
+                    MACERAYA BAŞLA →
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== 2. STAGE 1 COMPLETE MODAL ==================== -->
+        <div id="stage1-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center p-4 bg-[#02120d]/85 backdrop-blur-md">
+            <div class="glass-panel rounded-3xl max-w-lg w-full p-6 sm:p-8 text-center custom-scroll max-h-[92vh] overflow-y-auto">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-400/20 border-2 border-amber-300 text-3xl mb-3 shadow-[0_0_20px_rgba(251,191,36,0.4)]">
+                    ☀️⚡
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-lime-300">
+                    Işığa Bağımlı Evre Tamamlandı!
+                </h2>
+                <p class="mt-1 text-xs sm:text-sm text-emerald-200">
+                    Tilakoit zarında ışık enerjisini kimyasal enerjiye dönüştürdün!
+                </p>
+
+                <!-- Summary Grid -->
+                <div class="mt-5 grid grid-cols-2 gap-3 text-left">
+                    <div class="p-3.5 rounded-2xl bg-red-950/40 border border-red-400/30">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-red-300 mb-2">📥 Girenler (Tüketilen)</h3>
+                        <ul class="space-y-1.5 text-xs sm:text-sm text-emerald-100">
+                            <li>☀️ Işık Enerjisi (Foton)</li>
+                            <li>💧 Su (H₂O) — <em>Fotoliz ile ayrıştı</em></li>
+                            <li>🔋 ADP + Pᵢ ve NADP⁺</li>
+                        </ul>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-emerald-950/60 border border-lime-400/40">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-lime-300 mb-2">📤 Çıkanlar (Üretilen)</h3>
+                        <ul class="space-y-1.5 text-xs sm:text-sm text-emerald-100">
+                            <li>🫧 <strong>O₂ (Oksijen)</strong> — <em>Atmosfere verildi</em></li>
+                            <li>⚡ <strong>ATP</strong> — <em>Fotofosforilasyon ile</em></li>
+                            <li>🔋 <strong>NADPH</strong> — <em>Elektron taşıyıcı</em></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 rounded-xl bg-teal-900/40 border border-teal-400/30 text-xs sm:text-sm text-teal-100">
+                    Şimdi ürettiğin <strong>ATP</strong> ve <strong>NADPH</strong> moleküllerini alarak kloroplastın sıvı kısmı olan <strong>Stroma</strong>'ya geç ve CO₂'den besin üret!
+                </div>
+
+                <button id="btn-next-stage" class="mt-6 w-full py-3.5 px-6 rounded-2xl btn-glow text-white font-game text-lg font-bold tracking-wide cursor-pointer">
+                    STROMAYA GEÇ →
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== 3. VICTORY / SUMMARY MODAL ==================== -->
+        <div id="victory-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center p-4 bg-[#02120d]/90 backdrop-blur-md">
+            <div class="glass-panel rounded-3xl max-w-2xl w-full p-5 sm:p-7 text-center custom-scroll max-h-[94vh] overflow-y-auto">
+                <div class="text-4xl sm:text-5xl mb-2 animate-bounce">🎉🌿🍬</div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-lime-300 to-emerald-300">
+                    TEBRİKLER! FOTOSENTEZ TAMAMLANDI!
+                </h2>
+                <p class="mt-1 text-xs sm:text-sm text-emerald-200">
+                    Işık enerjisini kullanarak inorganik maddelerden organik besin (Glikoz) sentezledin!
+                </p>
+
+                <!-- Balanced Chemical Equation -->
+                <div class="mt-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-950 border border-amber-400/40 shadow-inner">
+                    <div class="text-[11px] uppercase tracking-widest text-amber-300 font-bold mb-1">Genel Fotosentez Denklemi</div>
+                    <div class="text-sm sm:text-lg font-bold text-white tracking-wide flex flex-wrap items-center justify-center gap-1.5">
+                        <span class="text-cyan-300">6CO₂</span>
+                        <span>+</span>
+                        <span class="text-blue-300">6H₂O</span>
+                        <span class="inline-flex flex-col items-center px-2 text-xs text-amber-300">
+                            <span class="text-[10px]">Işık Enerjisi</span>
+                            <span>───────▶</span>
+                            <span class="text-[10px] text-lime-300">Klorofil</span>
+                        </span>
+                        <span class="text-amber-300 font-extrabold">C₆H₁₂O₆ (Glikoz)</span>
+                        <span>+</span>
+                        <span class="text-emerald-300">6O₂</span>
+                    </div>
+                </div>
+
+                <!-- Comparison Table for 10th Grade Biology -->
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-left text-xs sm:text-sm">
+                    <div class="p-3.5 rounded-2xl bg-emerald-950/70 border border-emerald-400/35">
+                        <div class="font-bold text-amber-300 text-sm mb-1.5 flex items-center gap-1.5">
+                            <span>☀️</span> 1. Işığa Bağımlı Evre
+                        </div>
+                        <ul class="space-y-1 text-emerald-100/90 text-xs">
+                            <li><strong>Yer:</strong> Tilakoit Zar (Grana)</li>
+                            <li><strong>Işık & Klorofil:</strong> Doğrudan görev alır.</li>
+                            <li><strong>Olaylar:</strong> Suyun fotolizi, ETS, Fotofosforilasyon (ATP) ve NADP⁺ indirgenmesi.</li>
+                            <li><strong>Sonuç:</strong> O₂ açığa çıkar; ATP ve NADPH üretilir.</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-teal-950/70 border border-cyan-400/35">
+                        <div class="font-bold text-cyan-300 text-sm mb-1.5 flex items-center gap-1.5">
+                            <span>🔄</span> 2. Calvin Döngüsü (Işıktan Bağımsız)
+                        </div>
+                        <ul class="space-y-1 text-emerald-100/90 text-xs">
+                            <li><strong>Yer:</strong> Stroma Sıvısı</li>
+                            <li><strong>Işık & Klorofil:</strong> Doğrudan kullanılmaz (Enzimler görev alır).</li>
+                            <li><strong>Olaylar:</strong> Rubisco ile CO₂ tutma, ATP ve NADPH tüketimi, PGAL sentezi.</li>
+                            <li><strong>Sonuç:</strong> Glikoz (C₆H₁₂O₆) sentezlenir; ADP ve NADP⁺ geri döner.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button id="btn-restart" class="mt-5 w-full sm:w-auto px-8 py-3.5 rounded-2xl btn-glow text-white font-game text-lg font-bold tracking-wide cursor-pointer">
+                    🔄 TEKRAR OYNA
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== 4. QUICK HELP / BIOLOGY GUIDE MODAL ==================== -->
+        <div id="help-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+            <div class="glass-panel rounded-3xl max-w-md w-full p-5 text-left">
+                <div class="flex items-center justify-between border-b border-emerald-500/30 pb-2.5 mb-3">
+                    <h3 class="font-game text-lg font-bold text-lime-300">🧬 Kloroplast Rehberi</h3>
+                    <button id="btn-close-help" class="w-8 h-8 rounded-full bg-emerald-900 text-emerald-200 hover:bg-emerald-800 flex items-center justify-center font-bold">✕</button>
+                </div>
+                <div id="help-content" class="text-xs sm:text-sm text-emerald-100 space-y-2.5 leading-relaxed">
+                    <!-- Dynamic stage help -->
+                </div>
+                <button id="btn-ok-help" class="mt-4 w-full py-2.5 rounded-xl btn-glow text-white font-bold text-sm">
+                    ANLADIM, DEVAM ET!
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /**
+         * CHLORO QUEST: BİYOLOJİ • FOTOSENTEZ MACERASI
+         * Interactive 2D Educational Game inside a Chloroplast
+         */
+
+        // ==================== WEB AUDIO SYNTHESIZER (No External Audio URLs) ====================
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playTone(freq, type = 'sine', duration = 0.2, vol = 0.15, slideTo = null) {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    if (slideTo) {
+                        osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+                    }
+
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {
+                    // Ignore audio context autoplay errors silently
+                }
+            }
+
+            playCollect() {
+                this.playTone(520, 'sine', 0.14, 0.15, 880);
+                setTimeout(() => this.playTone(780, 'triangle', 0.18, 0.12, 1040), 60);
+            }
+
+            playReact() {
+                this.playTone(330, 'triangle', 0.25, 0.18, 660);
+                setTimeout(() => this.playTone(495, 'sine', 0.3, 0.15, 990), 100);
+            }
+
+            playBubble() {
+                this.playTone(400, 'sine', 0.12, 0.08, 720);
+            }
+
+            playStageClear() {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((n, i) => {
+                    setTimeout(() => this.playTone(n, 'triangle', 0.35, 0.16), i * 110);
+                });
+            }
+
+            playBump() {
+                this.playTone(180, 'sawtooth', 0.12, 0.08, 120);
+            }
+        }
+
+        const sfx = new SoundFX();
+
+        // ==================== GAME STATE & CONFIGURATION ====================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 800;
+        let height = 600;
+        let lastTime = 0;
+        let globalTime = 0;
+
+        // Input state
+        const keys = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+
+        // Main Game State
+        const state = {
+            screen: 'START', // 'START', 'PLAYING', 'MODAL', 'VICTORY'
+            stage: 1,        // 1: Tilakoit Zarı, 2: Stroma (Calvin Döngüsü)
+            step: 1,         // Current quest step within stage
+            inventory: {
+                photon: 0,
+                h2o: 0,
+                o2: 0,
+                electron: 0,
+                proton: 0,
+                atp: 0,
+                nadph: 0,
+                co2: 0,
+                rubp: 3,
+                pga: 0,
+                pgal: 0,
+                glucose: 0
+            },
+            player: {
+                x: 0.2, // Normalized coordinates (0..1) mapped to responsive arena
+                y: 0.5,
+                vx: 0,
+                vy: 0,
+                radius: 24,
+                speed: 0.34, // Normalized units per second
+                facing: 1,
+                bobPhase: 0,
+                glowPulse: 0
+            },
+            collectibles: [],
+            stations: [],
+            particles: [],
+            floatingTexts: [],
+            etsPulses: [],
+            nearestTarget: null
+        };
+
+        // ==================== UI ELEMENTS ====================
+        const hudBar = document.getElementById('hud-bar');
+        const stageBadge = document.getElementById('stage-badge');
+        const inventoryBar = document.getElementById('inventory-bar');
+        const objectiveText = document.getElementById('objective-text');
+        const stepCounter = document.getElementById('step-counter');
+        const touchControls = document.getElementById('touch-controls');
+
+        const startScreen = document.getElementById('start-screen');
+        const stage1Modal = document.getElementById('stage1-modal');
+        const victoryModal = document.getElementById('victory-modal');
+        const helpModal = document.getElementById('help-modal');
+        const helpContent = document.getElementById('help-content');
+
+        const bioToast = document.getElementById('bio-toast');
+        const toastIcon = document.getElementById('toast-icon');
+        const toastMsg = document.getElementById('toast-msg');
+        let toastTimeout = null;
+
+        function showToast(icon, msg, duration = 3600) {
+            toastIcon.textContent = icon;
+            toastMsg.textContent = msg;
+            bioToast.classList.remove('opacity-0', '-translate-y-2');
+            bioToast.classList.add('opacity-100', 'translate-y-0');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                bioToast.classList.remove('opacity-100', 'translate-y-0');
+                bioToast.classList.add('opacity-0', '-translate-y-2');
+            }, duration);
+        }
+
+        function spawnFloatingText(nx, ny, text, color = '#a3e635') {
+            state.floatingTexts.push({
+                x: nx * width,
+                y: ny * height,
+                text,
+                color,
+                alpha: 1,
+                vy: -45
+            });
+        }
+
+        function spawnParticles(nx, ny, color, count = 14, speed = 110) {
+            const cx = nx * width;
+            const cy = ny * height;
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+                const spd = speed * (0.4 + Math.random() * 0.8);
+                state.particles.push({
+                    x: cx,
+                    y: cy,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd,
+                    radius: 2.5 + Math.random() * 3.5,
+                    color,
+                    alpha: 1,
+                    decay: 0.8 + Math.random() * 0.7,
+                    floatUp: false
+                });
+            }
+        }
+
+        function spawnO2Bubbles(nx, ny, count = 8) {
+            const cx = nx * width;
+            const cy = ny * height;
+            for (let i = 0; i < count; i++) {
+                state.particles.push({
+                    x: cx + (Math.random() - 0.5) * 40,
+                    y: cy + (Math.random() - 0.5) * 20,
+                    vx: (Math.random() - 0.5) * 35,
+                    vy: -60 - Math.random() * 60,
+                    radius: 5 + Math.random() * 5,
+                    color: '#38bdf8',
+                    alpha: 0.95,
+                    decay: 0.38,
+                    floatUp: true,
+                    label: 'O₂'
+                });
+            }
+        }
+
+        // ==================== STAGE INITIALIZATION ====================
+        function initStage1() {
+            state.stage = 1;
+            state.step = 1;
+            state.inventory = {
+                photon: 0,
+                h2o: 0,
+                o2: 0,
+                electron: 0,
+                proton: 0,
+                atp: 0,
+                nadph: 0,
+                co2: 0,
+                rubp: 3,
+                pga: 0,
+                pgal: 0,
+                glucose: 0
+            };
+
+            state.player.x = 0.16;
+            state.player.y = 0.62;
+            state.etsPulses = [];
+            state.particles = [];
+            state.floatingTexts = [];
+
+            // Stations along the Thylakoid Membrane
+            state.stations = [
+                {
+                    id: 'ps2',
+                    name: 'Fotosistem II (PSII)',
+                    sub: 'Klorofil-a & Fotoliz Merkezi',
+                    x: 0.26,
+                    y: 0.44,
+                    radius: 42,
+                    color: '#10b981',
+                    accent: '#fbbf24',
+                    active: true,
+                    excited: false,
+                    photolyzed: false
+                },
+                {
+                    id: 'ets',
+                    name: 'ETS & Fotosistem I',
+                    sub: 'Elektron Taşıma & NADP⁺ İndirgeme',
+                    x: 0.54,
+                    y: 0.44,
+                    radius: 42,
+                    color: '#06b6d4',
+                    accent: '#38bdf8',
+                    active: false,
+                    completed: false
+                },
+                {
+                    id: 'atp_synthase',
+                    name: 'ATP Sentaz',
+                    sub: 'Kemiozmoz & Fotofosforilasyon',
+                    x: 0.80,
+                    y: 0.44,
+                    radius: 44,
+                    color: '#f59e0b',
+                    accent: '#fef08a',
+                    active: false,
+                    completed: false
+                }
+            ];
+
+            // Spawn Step 1 Collectibles: 3 Photons
+            state.collectibles = [
+                { id: 'ph1', type: 'photon', label: 'Foton ☀️', x: 0.14, y: 0.22, color: '#fbbf24', collected: false },
+                { id: 'ph2', type: 'photon', label: 'Foton ☀️', x: 0.32, y: 0.18, color: '#fbbf24', collected: false },
+                { id: 'ph3', type: 'photon', label: 'Foton ☀️', x: 0.46, y: 0.23, color: '#fbbf24', collected: false }
+            ];
+
+            updateHUD();
+            showToast('☀️', '1. Evre: Tilakoit zarındasın! Önce parlayan Fotonları (ışık) topla ve Fotosistem II\'ye götür.');
+        }
+
+        function spawnStage1Step2H2O() {
+            state.collectibles = [
+                { id: 'w1', type: 'h2o', label: 'H₂O 💧', x: 0.15, y: 0.76, color: '#38bdf8', collected: false },
+                { id: 'w2', type: 'h2o', label: 'H₂O 💧', x: 0.35, y: 0.78, color: '#38bdf8', collected: false }
+            ];
+        }
+
+        function initStage2() {
+            state.stage = 2;
+            state.step = 1;
+            // Carry over ATP and NADPH produced in Stage 1!
+            state.inventory.atp = 3;
+            state.inventory.nadph = 2;
+            state.inventory.co2 = 0;
+            state.inventory.rubp = 3;
+            state.inventory.pga = 0;
+            state.inventory.pgal = 0;
+            state.inventory.glucose = 0;
+
+            state.player.x = 0.50;
+            state.player.y = 0.52;
+            state.etsPulses = [];
+            state.particles = [];
+            state.floatingTexts = [];
+
+            // Calvin Cycle Stations arranged in a glowing ring in Stroma
+            state.stations = [
+                {
+                    id: 'rubisco',
+                    name: '1. Karbon Tutma (Rubisco)',
+                    sub: 'CO₂ + RuBP → Kararsız Ara Bileşik → PGA',
+                    x: 0.50,
+                    y: 0.23,
+                    radius: 44,
+                    color: '#22d3ee',
+                    accent: '#a5f3fc',
+                    active: true,
+                    completed: false
+                },
+                {
+                    id: 'reduction',
+                    name: '2. İndirgeme Evresi',
+                    sub: 'PGA + ATP + NADPH → PGAL (G3P)',
+                    x: 0.78,
+                    y: 0.62,
+                    radius: 44,
+                    color: '#a855f7',
+                    accent: '#f0abfc',
+                    active: false,
+                    completed: false
+                },
+                {
+                    id: 'regeneration',
+                    name: '3. Glikoz & RuBP Yenileme',
+                    sub: 'PGAL + ATP → Glikoz (C₆H₁₂O₆) + RuBP',
+                    x: 0.22,
+                    y: 0.62,
+                    radius: 44,
+                    color: '#84cc16',
+                    accent: '#fef08a',
+                    active: false,
+                    completed: false
+                }
+            ];
+
+            // Spawn 3 CO2 molecules in Stroma
+            state.collectibles = [
+                { id: 'c1', type: 'co2', label: 'CO₂ 🌫️', x: 0.24, y: 0.26, color: '#67e8f9', collected: false },
+                { id: 'c2', type: 'co2', label: 'CO₂ 🌫️', x: 0.76, y: 0.26, color: '#67e8f9', collected: false },
+                { id: 'c3', type: 'co2', label: 'CO₂ 🌫️', x: 0.50, y: 0.78, color: '#67e8f9', collected: false }
+            ];
+
+            updateHUD();
+            showToast('🔄', '2. Evre: Stroma sıvısındasın! 3 adet CO₂ toplayıp Rubisco enzimine götür.');
+        }
+
+        // ==================== HUD & OBJECTIVE UPDATES ====================
+        function updateHUD() {
+            if (state.stage === 1) {
+                stageBadge.textContent = '1. EVRE: TİLAKOİT ZARI (Işığa Bağımlı)';
+                stageBadge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-bold tracking-wide bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-sm';
+
+                inventoryBar.innerHTML = `
+                    <span class="px-2 py-1 rounded-lg bg-amber-950/80 border border-amber-400/40 text-amber-300">☀️ Foton: <b>${state.inventory.photon}/3</b></span>
+                    <span class="px-2 py-1 rounded-lg bg-sky-950/80 border border-sky-400/40 text-sky-300">💧 H₂O: <b>${state.inventory.h2o}/2</b></span>
+                    <span class="px-2 py-1 rounded-lg bg-blue-950/80 border border-blue-400/40 text-blue-200">🫧 O₂: <b>${state.inventory.o2}</b></span>
+                    <span class="px-2 py-1 rounded-lg bg-purple-950/80 border border-purple-400/40 text-purple-300">🔋 NADPH: <b>${state.inventory.nadph}</b></span>
+                    <span class="px-2 py-1 rounded-lg bg-lime-950/80 border border-lime-400/40 text-lime-300">⚡ ATP: <b>${state.inventory.atp}</b></span>
+                `;
+
+                stepCounter.textContent = `Adım ${state.step}/4`;
+
+                if (state.step === 1) {
+                    const rem = 3 - state.inventory.photon;
+                    objectiveText.textContent = rem > 0
+                        ? `Parlayan ${rem} Fotonu topla ve Fotosistem II (PSII) merkezine getir.`
+                        : `Harika! Şimdi Fotosistem II'ye yaklaş ve [BOŞLUK] ile klorofili uyar!`;
+                } else if (state.step === 2) {
+                    const rem = 2 - state.inventory.h2o;
+                    objectiveText.textContent = rem > 0
+                        ? `Tilakoit boşluğundaki ${rem} H₂O (Su) molekülünü topla.`
+                        : `Fotosistem II'ye git ve [BOŞLUK] ile Suyun Fotolizini başlat!`;
+                } else if (state.step === 3) {
+                    objectiveText.textContent = `Uyarılan elektronları ETS & Fotosistem I istasyonuna taşıyıp NADPH üret!`;
+                } else if (state.step === 4) {
+                    objectiveText.textContent = `Biriken H⁺ protonları ile ATP Sentaz'ı çalıştır ve ATP sentezle!`;
+                }
+
+                helpContent.innerHTML = `
+                    <p><strong>📍 Konum:</strong> Kloroplastın <em>Tilakoit Zarı</em>.</p>
+                    <p><strong>1. Işık Emilimi:</strong> Klorofil pigmentleri fotonları soğurur ve elektronları yüksek enerji düzeyine çıkarır.</p>
+                    <p><strong>2. Fotoliz:</strong> Işık enerjisiyle su (H₂O) parçalanır; <strong>O₂</strong> atmosfere verilir, elektronlar PSII'ye, protonlar (H⁺) tilakoit boşluğuna geçer.</p>
+                    <p><strong>3. ETS & NADPH:</strong> Elektronlar ETS boyunca taşınırken NADP⁺ indirgenerek <strong>NADPH</strong> oluşur.</p>
+                    <p><strong>4. Fotofosforilasyon:</strong> H⁺ yoğunluk farkı <strong>ATP Sentaz</strong> türbinini döndürerek <strong>ATP</strong> üretir.</p>
+                `;
+            } else {
+                stageBadge.textContent = '2. EVRE: STROMA (Calvin Döngüsü)';
+                stageBadge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-bold tracking-wide bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-sm';
+
+                inventoryBar.innerHTML = `
+                    <span class="px-2 py-1 rounded-lg bg-cyan-950/80 border border-cyan-400/40 text-cyan-300">🌫️ CO₂: <b>${state.inventory.co2}/3</b></span>
+                    <span class="px-2 py-1 rounded-lg bg-teal-950/80 border border-teal-400/40 text-teal-200">🧬 RuBP: <b>${state.inventory.rubp}</b></span>
+                    <span class="px-2 py-1 rounded-lg bg-lime-950/80 border border-lime-400/40 text-lime-300">⚡ ATP: <b>${state.inventory.atp}</b></span>
+                    <span class="px-2 py-1 rounded-lg bg-purple-950/80 border border-purple-400/40 text-purple-300">🔋 NADPH: <b>${state.inventory.nadph}</b></span>
+                    <span class="px-2 py-1 rounded-lg bg-amber-950/80 border border-amber-400/40 text-amber-300">🍬 Glikoz: <b>${state.inventory.glucose}</b></span>
+                `;
+
+                stepCounter.textContent = `Adım ${state.step}/3`;
+
+                if (state.step === 1) {
+                    const rem = 3 - state.inventory.co2;
+                    objectiveText.textContent = rem > 0
+                        ? `Stroma içindeki ${rem} adet CO₂ molekülünü topla.`
+                        : `1. Karbon Tutma (Rubisco) istasyonuna git ve [BOŞLUK] ile CO₂'yi RuBP'ye bağla!`;
+                } else if (state.step === 2) {
+                    objectiveText.textContent = `2. İndirgeme Evresi istasyonuna git; ATP ve NADPH harcayarak PGAL üret!`;
+                } else if (state.step === 3) {
+                    objectiveText.textContent = `3. Glikoz & RuBP Yenileme istasyonuna git; kalan ATP ile Glikoz sentezle!`;
+                }
+
+                helpContent.innerHTML = `
+                    <p><strong>📍 Konum:</strong> Kloroplastın sıvı kısmı olan <em>Stroma</em>.</p>
+                    <p><strong>1. Karbon Tutma:</strong> <strong>Rubisco</strong> enzimi, havadan alınan CO₂'yi 5 karbonlu <strong>RuBP</strong> molekülüne bağlar ve 3 karbonlu PGA oluşur.</p>
+                    <p><strong>2. İndirgeme:</strong> 1. evreden gelen <strong>ATP</strong> ve <strong>NADPH</strong> harcanarak PGA molekülleri <strong>PGAL (Gliseraldehit-3-fosfat)</strong> bileşiğine indirgenir.</p>
+                    <p><strong>3. Sentez & Yenilenme:</strong> PGAL'lerin bir kısmından <strong>Glikoz (C₆H₁₂O₆)</strong> sentezlenirken, geri kalanı ATP harcanarak yeniden <strong>RuBP</strong>'ye dönüştürülür.</p>
+                `;
+            }
+        }
+
+        // ==================== INTERACTION LOGIC ====================
+        function triggerInteraction() {
+            if (state.screen !== 'PLAYING') return;
+
+            const target = state.nearestTarget;
+            if (!target) {
+                sfx.playBump();
+                spawnFloatingText(state.player.x, state.player.y - 0.05, 'Parlayan bir maddeye veya istasyona yaklaş!', '#fcd34d');
+                return;
+            }
+
+            // 1. Check Collectible Pickup
+            if (target.kind === 'collectible') {
+                const item = target.ref;
+                item.collected = true;
+                sfx.playCollect();
+                spawnParticles(item.x, item.y, item.color, 14, 100);
+
+                if (item.type === 'photon') {
+                    state.inventory.photon++;
+                    spawnFloatingText(item.x, item.y, '+1 Foton ☀️', '#fbbf24');
+                    if (state.inventory.photon === 3) {
+                        showToast('⚡', 'Tüm fotonlar toplandı! Şimdi Fotosistem II (PSII) istasyonuna git ve etkileşime geç.');
+                    }
+                } else if (item.type === 'h2o') {
+                    state.inventory.h2o++;
+                    spawnFloatingText(item.x, item.y, '+1 H₂O 💧', '#38bdf8');
+                    if (state.inventory.h2o === 2) {
+                        showToast('💧', 'Su molekülleri hazır! Fotosistem II\'de Fotoliz gerçekleştirmek için [BOŞLUK] bas.');
+                    }
+                } else if (item.type === 'co2') {
+                    state.inventory.co2++;
+                    spawnFloatingText(item.x, item.y, '+1 CO₂ 🌫️', '#67e8f9');
+                    if (state.inventory.co2 === 3) {
+                        showToast('🧬', '3 CO₂ toplandı! Rubisco enzimine gidip karbon tutmayı başlat.');
+                    }
+                }
+
+                updateHUD();
+                return;
+            }
+
+            // 2. Check Station Interaction
+            if (target.kind === 'station') {
+                const st = target.ref;
+
+                if (state.stage === 1) {
+                    handleStage1Station(st);
+                } else {
+                    handleStage2Station(st);
+                }
+            }
+        }
+
+        function handleStage1Station(st) {
+            // STEP 1: Excite PSII with Photons
+            if (st.id === 'ps2' && state.step === 1) {
+                if (state.inventory.photon < 3) {
+                    sfx.playBump();
+                    spawnFloatingText(st.x, st.y - 0.07, `Önce ${3 - state.inventory.photon} Foton daha topla!`, '#fbbf24');
+                    return;
+                }
+                sfx.playReact();
+                st.excited = true;
+                state.step = 2;
+                spawnParticles(st.x, st.y, '#fbbf24', 22, 140);
+                spawnFloatingText(st.x, st.y - 0.08, 'Klorofil Uyarıldı! e⁻ Yükseldi!', '#fef08a');
+                spawnStage1Step2H2O();
+                updateHUD();
+                showToast('💧', 'Klorofil elektron kaybetti! Şimdi H₂O moleküllerini topla ve PSII\'de Fotoliz ile parçala.');
+                return;
+            }
+
+            // STEP 2: Photolysis of H2O at PSII
+            if (st.id === 'ps2' && state.step === 2) {
+                if (state.inventory.h2o < 2) {
+                    sfx.playBump();
+                    spawnFloatingText(st.x, st.y - 0.07, `Önce ${2 - state.inventory.h2o} H₂O daha topla!`, '#38bdf8');
+                    return;
+                }
+                sfx.playReact();
+                sfx.playBubble();
+                st.photolyzed = true;
+                st.active = false;
+                state.inventory.o2 = 1;
+                state.inventory.electron = 2;
+                state.inventory.proton = 4;
+                state.step = 3;
+
+                // Activate ETS & PSI
+                const etsSt = state.stations.find(s => s.id === 'ets');
+                if (etsSt) etsSt.active = true;
+
+                // Spawn animated electrons moving along ETS
+                for (let i = 0; i < 4; i++) {
+                    state.etsPulses.push({ progress: i * 0.22, speed: 0.45 });
+                }
+
+                spawnO2Bubbles(st.x, st.y - 0.05, 10);
+                spawnParticles(st.x, st.y, '#38bdf8', 20, 120);
+                spawnFloatingText(st.x, st.y - 0.09, 'FOTOLİZ: H₂O → 2e⁻ + 2H⁺ + ½O₂!', '#7dd3fc');
+                updateHUD();
+                showToast('🫧', 'Fotoliz gerçekleşti! O₂ açığa çıktı. Şimdi uyarılan elektronları ETS & Fotosistem I\'e taşı!');
+                return;
+            }
+
+            // STEP 3: ETS & PSI -> Reduce NADP+ to NADPH
+            if (st.id === 'ets' && state.step === 3) {
+                sfx.playReact();
+                st.completed = true;
+                st.active = false;
+                state.inventory.nadph = 2;
+                state.step = 4;
+
+                const atpSt = state.stations.find(s => s.id === 'atp_synthase');
+                if (atpSt) atpSt.active = true;
+
+                spawnParticles(st.x, st.y, '#c084fc', 24, 130);
+                spawnFloatingText(st.x, st.y - 0.08, 'NADP⁺ + 2e⁻ + H⁺ → NADPH Üretildi!', '#e9d5ff');
+                updateHUD();
+                showToast('🔋', 'Harika! NADPH üretildi ve tilakoit boşluğunda H⁺ birikti. Şimdi ATP Sentaz\'ı çalıştır!');
+                return;
+            }
+
+            // STEP 4: ATP Synthase -> Synthesize ATP
+            if (st.id === 'atp_synthase' && state.step === 4) {
+                sfx.playStageClear();
+                st.completed = true;
+                st.active = false;
+                state.inventory.atp = 3;
+
+                spawnParticles(st.x, st.y, '#a3e635', 30, 160);
+                spawnFloatingText(st.x, st.y - 0.08, 'ADP + Pᵢ → 3 ATP Sentezlendi! ⚡', '#bef264');
+                updateHUD();
+
+                setTimeout(() => {
+                    state.screen = 'MODAL';
+                    stage1Modal.classList.remove('hidden');
+                    touchControls.classList.add('hidden');
+                }, 950);
+                return;
+            }
+
+            sfx.playBump();
+            spawnFloatingText(st.x, st.y - 0.06, 'Bu istasyon henüz hazır değil!', '#cbd5e1');
+        }
+
+        function handleStage2Station(st) {
+            // STEP 1: Carbon Fixation at Rubisco
+            if (st.id === 'rubisco' && state.step === 1) {
+                if (state.inventory.co2 < 3) {
+                    sfx.playBump();
+                    spawnFloatingText(st.x, st.y - 0.07, `Önce ${3 - state.inventory.co2} CO₂ daha topla!`, '#67e8f9');
+                    return;
+                }
+                sfx.playReact();
+                st.completed = true;
+                st.active = false;
+                state.inventory.pga = 6;
+                state.step = 2;
+
+                const redSt = state.stations.find(s => s.id === 'reduction');
+                if (redSt) redSt.active = true;
+
+                spawnParticles(st.x, st.y, '#22d3ee', 24, 130);
+                spawnFloatingText(st.x, st.y - 0.08, 'Rubisco: 3 CO₂ + 3 RuBP → 6 PGA!', '#a5f3fc');
+                updateHUD();
+                showToast('⚡', 'Karbon tutuldu! Şimdi 2. İndirgeme istasyonuna gidip ATP ve NADPH kullanarak PGAL üret.');
+                return;
+            }
+
+            // STEP 2: Reduction using ATP and NADPH -> PGAL
+            if (st.id === 'reduction' && state.step === 2) {
+                sfx.playReact();
+                st.completed = true;
+                st.active = false;
+                state.inventory.atp -= 2;
+                state.inventory.nadph -= 2;
+                state.inventory.pgal = 6;
+                state.step = 3;
+
+                const regSt = state.stations.find(s => s.id === 'regeneration');
+                if (regSt) regSt.active = true;
+
+                spawnParticles(st.x, st.y, '#c084fc', 26, 140);
+                spawnFloatingText(st.x, st.y - 0.08, 'ATP & NADPH Harcandı → 6 PGAL Üretildi!', '#f0abfc');
+                updateHUD();
+                showToast('🍬', 'İndirgeme tamamlandı! Son adımda 3. istasyona gidip Glikoz sentezle ve RuBP\'yi yenile!');
+                return;
+            }
+
+            // STEP 3: Glucose Synthesis & RuBP Regeneration
+            if (st.id === 'regeneration' && state.step === 3) {
+                sfx.playStageClear();
+                st.completed = true;
+                st.active = false;
+                state.inventory.atp = 0;
+                state.inventory.glucose = 1;
+                state.inventory.rubp = 3;
+
+                spawnParticles(st.x, st.y, '#fbbf24', 35, 170);
+                spawnFloatingText(st.x, st.y - 0.08, 'GLİKOZ (C₆H₁₂O₆) SENTEZLENDİ! 🎉', '#fef08a');
+                updateHUD();
+
+                setTimeout(() => {
+                    state.screen = 'VICTORY';
+                    victoryModal.classList.remove('hidden');
+                    touchControls.classList.add('hidden');
+                }, 1050);
+                return;
+            }
+
+            sfx.playBump();
+            spawnFloatingText(st.x, st.y - 0.06, 'Döngü sırasını takip et!', '#cbd5e1');
+        }
+
+        // ==================== RESIZE & RESPONSIVE CANVAS ====================
+        function resizeCanvas() {
+            const wrapper = document.getElementById('game-wrapper');
+            width = wrapper.clientWidth;
+            height = wrapper.clientHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // ==================== UPDATE LOOP ====================
+        function update(dt) {
+            globalTime += dt;
+
+            // Update Particles
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                if (p.floatUp) {
+                    p.x += Math.sin(globalTime * 5 + i) * 18 * dt;
+                }
+                p.alpha -= p.decay * dt;
+                if (p.alpha <= 0) state.particles.splice(i, 1);
+            }
+
+            // Update Floating Texts
+            for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
+                const ft = state.floatingTexts[i];
+                ft.y += ft.vy * dt;
+                ft.alpha -= 0.65 * dt;
+                if (ft.alpha <= 0) state.floatingTexts.splice(i, 1);
+            }
+
+            // Update ETS Electron Pulses in Stage 1
+            if (state.stage === 1 && state.etsPulses.length > 0) {
+                state.etsPulses.forEach(pulse => {
+                    pulse.progress += pulse.speed * dt;
+                    if (pulse.progress > 1) pulse.progress -= 1;
+                });
+            }
+
+            if (state.screen !== 'PLAYING') return;
+
+            // Player Movement
+            let dx = 0;
+            let dy = 0;
+            if (keys.left) dx -= 1;
+            if (keys.right) dx += 1;
+            if (keys.up) dy -= 1;
+            if (keys.down) dy += 1;
+
+            if (dx !== 0 || dy !== 0) {
+                const len = Math.hypot(dx, dy);
+                dx /= len;
+                dy /= len;
+                if (dx < -0.1) state.player.facing = -1;
+                if (dx > 0.1) state.player.facing = 1;
+                state.player.bobPhase += dt * 12;
+            } else {
+                state.player.bobPhase += dt * 3.5;
+            }
+
+            // Aspect-ratio corrected normalized movement
+            const aspect = width / Math.max(1, height);
+            const speedX = state.player.speed / Math.max(0.8, aspect * 0.75);
+            const speedY = state.player.speed;
+
+            state.player.x += dx * speedX * dt;
+            state.player.y += dy * speedY * dt;
+
+            // Keep Chloro inside chloroplast boundary
+            const marginX = 0.06;
+            const marginY = 0.09;
+            state.player.x = Math.max(marginX, Math.min(1 - marginX, state.player.x));
+            state.player.y = Math.max(marginY, Math.min(1 - marginY, state.player.y));
+
+            // Proximity Detection for Collectibles & Stations
+            const px = state.player.x * width;
+            const py = state.player.y * height;
+            let bestDist = Infinity;
+            let bestTarget = null;
+
+            // Check collectibles first (priority when overlapping)
+            state.collectibles.forEach(item => {
+                if (item.collected) return;
+                const ix = item.x * width;
+                const iy = item.y * height;
+                const d = Math.hypot(px - ix, py - iy);
+                if (d < 68 && d < bestDist) {
+                    bestDist = d;
+                    bestTarget = { kind: 'collectible', ref: item, x: ix, y: iy };
+                }
+            });
+
+            // Check stations if no collectible is closer
+            if (!bestTarget) {
+                state.stations.forEach(st => {
+                    const sx = st.x * width;
+                    const sy = st.y * height;
+                    const d = Math.hypot(px - sx, py - sy);
+                    if (d < st.radius + 48 && d < bestDist) {
+                        bestDist = d;
+                        bestTarget = { kind: 'station', ref: st, x: sx, y: sy };
+                    }
+                });
+            }
+
+            state.nearestTarget = bestTarget;
+        }
+
+        // ==================== RENDERING PIPELINE ====================
+        function drawBackground() {
+            // Deep chloroplast interior gradient
+            const grad = ctx.createRadialGradient(width * 0.5, height * 0.5, 30, width * 0.5, height * 0.5, Math.max(width, height) * 0.7);
+            if (state.stage === 1) {
+                grad.addColorStop(0, '#094430');
+                grad.addColorStop(0.65, '#04271b');
+                grad.addColorStop(1, '#02140e');
+            } else {
+                grad.addColorStop(0, '#0a433c');
+                grad.addColorStop(0.65, '#052725');
+                grad.addColorStop(1, '#021514');
+            }
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+
+            // Outer Double Chloroplast Envelope Border
+            ctx.save();
+            ctx.strokeStyle = 'rgba(52, 211, 153, 0.25)';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.roundRect(10, 10, width - 20, height - 20, 48);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(163, 230, 53, 0.18)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 8]);
+            ctx.beginPath();
+            ctx.roundRect(22, 22, width - 44, height - 44, 40);
+            ctx.stroke();
+            ctx.restore();
+
+            // Ambient Floating Bioluminescent Spores
+            ctx.save();
+            for (let i = 0; i < 24; i++) {
+                const bx = ((i * 173 + globalTime * 14 * (i % 2 === 0 ? 1 : -1)) % width + width) % width;
+                const by = ((i * 293 + Math.sin(globalTime + i) * 25) % height + height) % height;
+                const r = 1.5 + (i % 3);
+                ctx.fillStyle = state.stage === 1 ? 'rgba(163, 230, 53, 0.18)' : 'rgba(34, 211, 238, 0.18)';
+                ctx.beginPath();
+                ctx.arc(bx, by, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            if (state.stage === 1) {
+                drawStage1ThylakoidEnvironment();
+            } else {
+                drawStage2StromaEnvironment();
+            }
+        }
+
+        function drawStage1ThylakoidEnvironment() {
+            const memY = height * 0.44;
+
+            // Decorative Grana Discs in background corners
+            drawGranaStack(width * 0.09, height * 0.24, 4);
+            drawGranaStack(width * 0.91, height * 0.74, 4);
+
+            // Region Labels
+            ctx.save();
+            ctx.font = '600 12px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(167, 243, 208, 0.35)';
+            ctx.fillText('STROMA TARAFINDAN GELEN IŞIK & NADP⁺ / ADP', width * 0.5, height * 0.12);
+            ctx.fillText('TİLAKOİT BOŞLUĞU (LÜMEN — H⁺ PROTON HAVUZU)', width * 0.5, height * 0.89);
+            ctx.restore();
+
+            // Phospholipid Bilayer (Thylakoid Membrane)
+            ctx.save();
+            const bandH = 38;
+            const memGrad = ctx.createLinearGradient(0, memY - bandH, 0, memY + bandH);
+            memGrad.addColorStop(0, 'rgba(16, 185, 129, 0.28)');
+            memGrad.addColorStop(0.5, 'rgba(6, 78, 59, 0.55)');
+            memGrad.addColorStop(1, 'rgba(16, 185, 129, 0.28)');
+            ctx.fillStyle = memGrad;
+            ctx.fillRect(30, memY - bandH, width - 60, bandH * 2);
+
+            // Lipid heads along top & bottom of membrane
+            const step = 16;
+            for (let x = 38; x < width - 38; x += step) {
+                const wave = Math.sin(x * 0.03 + globalTime * 2) * 2;
+                ctx.fillStyle = 'rgba(110, 231, 183, 0.45)';
+                ctx.beginPath();
+                ctx.arc(x, memY - bandH + wave, 4.5, 0, Math.PI * 2);
+                ctx.arc(x, memY + bandH + wave, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // ETS Glowing Pathway connecting PSII (0.26) -> ETS/PSI (0.54) -> ATP Synthase (0.80)
+            const x1 = width * 0.26;
+            const x2 = width * 0.54;
+            const x3 = width * 0.80;
+
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+            ctx.lineWidth = 6;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.moveTo(x1, memY);
+            ctx.lineTo(x2, memY);
+            ctx.stroke();
+
+            // Proton Gradient Arrow towards ATP Synthase
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.28)';
+            ctx.beginPath();
+            ctx.moveTo(x2, memY + 18);
+            ctx.lineTo(x3, memY + 18);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Animated Electron Pulses along ETS
+            state.etsPulses.forEach(pulse => {
+                const ex = x1 + (x2 - x1) * pulse.progress;
+                const ey = memY + Math.sin(pulse.progress * Math.PI * 4) * 6;
+                ctx.fillStyle = '#38bdf8';
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(ex, ey, 5.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0;
+
+            // Show floating H+ ions in Lumen once photolysis happens
+            if (state.inventory.proton > 0) {
+                for (let i = 0; i < 6; i++) {
+                    const hx = width * (0.25 + i * 0.11) + Math.sin(globalTime * 2 + i) * 12;
+                    const hy = height * 0.72 + Math.cos(globalTime * 2.5 + i) * 10;
+                    ctx.fillStyle = 'rgba(251, 191, 36, 0.75)';
+                    ctx.beginPath();
+                    ctx.arc(hx, hy, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#451a03';
+                    ctx.font = 'bold 10px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('H⁺', hx, hy);
+                }
+            }
+
+            ctx.restore();
+        }
+
+        function drawGranaStack(cx, cy, count) {
+            ctx.save();
+            for (let i = 0; i < count; i++) {
+                const y = cy + i * 12;
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.16)';
+                ctx.strokeStyle = 'rgba(52, 211, 153, 0.28)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.ellipse(cx, y, 36, 9, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawStage2StromaEnvironment() {
+            // Draw glowing Calvin Cycle Ring connecting the 3 stations
+            const s1 = state.stations[0]; // Top (0.50, 0.23)
+            const s2 = state.stations[1]; // Bottom-Right (0.78, 0.62)
+            const s3 = state.stations[2]; // Bottom-Left (0.22, 0.62)
+
+            ctx.save();
+            // Cycle Center Label
+            ctx.font = '700 14px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(165, 243, 252, 0.35)';
+            ctx.fillText('CALVİN DÖNGÜSÜ', width * 0.5, height * 0.47);
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.fillText('(Işıktan Bağımsız Tepkimeler)', width * 0.5, height * 0.50);
+
+            // Curved Cycle Arrows
+            ctx.strokeStyle = 'rgba(34, 211, 238, 0.32)';
+            ctx.lineWidth = 5;
+            ctx.setLineDash([12, 8]);
+            ctx.lineDashOffset = -globalTime * 28;
+
+            ctx.beginPath();
+            ctx.moveTo(s1.x * width, s1.y * height);
+            ctx.quadraticCurveTo(width * 0.76, height * 0.32, s2.x * width, s2.y * height);
+            ctx.quadraticCurveTo(width * 0.50, height * 0.78, s3.x * width, s3.y * height);
+            ctx.quadraticCurveTo(width * 0.24, height * 0.32, s1.x * width, s1.y * height);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawStations() {
+            state.stations.forEach(st => {
+                const sx = st.x * width;
+                const sy = st.y * height;
+                const pulse = Math.sin(globalTime * 4) * 4;
+                const r = st.radius + (st.active ? pulse : 0);
+
+                ctx.save();
+
+                // Outer Active Halo
+                if (st.active) {
+                    const halo = ctx.createRadialGradient(sx, sy, r * 0.4, sx, sy, r * 1.85);
+                    halo.addColorStop(0, st.accent + '66');
+                    halo.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = halo;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, r * 1.85, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Station Body
+                ctx.fillStyle = st.completed ? 'rgba(6, 78, 59, 0.9)' : 'rgba(4, 47, 36, 0.92)';
+                ctx.strokeStyle = st.active ? st.accent : (st.completed ? '#34d399' : 'rgba(148, 163, 184, 0.4)');
+                ctx.lineWidth = st.active ? 3.5 : 2;
+
+                ctx.beginPath();
+                ctx.arc(sx, sy, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Inner Turbine / Chlorophyll Ring
+                ctx.strokeStyle = st.color + '88';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(sx, sy, r * 0.72, globalTime, globalTime + Math.PI * 1.5);
+                ctx.stroke();
+
+                // Station Icon
+                ctx.font = '24px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                let icon = '🌿';
+                if (st.id === 'ps2') icon = st.photolyzed ? '💧' : '☀️';
+                if (st.id === 'ets') icon = '⚡';
+                if (st.id === 'atp_synthase') icon = '⚙️';
+                if (st.id === 'rubisco') icon = '🧬';
+                if (st.id === 'reduction') icon = '🔋';
+                if (st.id === 'regeneration') icon = '🍬';
+                ctx.fillText(icon, sx, sy);
+
+                // Station Name Tag
+                const labelY = sy - r - 22;
+                ctx.font = 'bold 12px Fredoka, sans-serif';
+                const textW = ctx.measureText(st.name).width + 18;
+                ctx.fillStyle = 'rgba(2, 24, 17, 0.88)';
+                ctx.strokeStyle = st.active ? st.accent : 'rgba(52, 211, 153, 0.35)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(sx - textW / 2, labelY - 11, textW, 22, 11);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = st.active ? '#fef08a' : '#d1fae5';
+                ctx.fillText(st.name, sx, labelY + 1);
+
+                // Subtitle below station
+                ctx.font = '500 10px Inter, sans-serif';
+                ctx.fillStyle = 'rgba(209, 250, 229, 0.75)';
+                ctx.fillText(st.sub, sx, sy + r + 15);
+
+                // Checkmark badge if completed
+                if (st.completed) {
+                    ctx.fillStyle = '#10b981';
+                    ctx.beginPath();
+                    ctx.arc(sx + r * 0.7, sy - r * 0.7, 11, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 12px sans-serif';
+                    ctx.fillText('✓', sx + r * 0.7, sy - r * 0.7 + 1);
+                }
+
+                ctx.restore();
+            });
+        }
+
+        function drawCollectibles() {
+            state.collectibles.forEach((item, idx) => {
+                if (item.collected) return;
+                const ix = item.x * width;
+                const iy = item.y * height + Math.sin(globalTime * 4 + idx) * 6;
+
+                ctx.save();
+
+                // Glow Aura
+                const aura = ctx.createRadialGradient(ix, iy, 4, ix, iy, 32);
+                aura.addColorStop(0, item.color + '99');
+                aura.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = aura;
+                ctx.beginPath();
+                ctx.arc(ix, iy, 32, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Orb Core
+                ctx.fillStyle = '#042f24';
+                ctx.strokeStyle = item.color;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(ix, iy, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Emoji Icon
+                ctx.font = '17px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const emoji = item.type === 'photon' ? '☀️' : (item.type === 'h2o' ? '💧' : '🌫️');
+                ctx.fillText(emoji, ix, iy);
+
+                // Label
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(item.label.split(' ')[0], ix, iy + 27);
+
+                ctx.restore();
+            });
+        }
+
+        function drawPlayerChloro() {
+            const px = state.player.x * width;
+            const py = state.player.y * height + Math.sin(state.player.bobPhase) * 3.5;
+            const r = state.player.radius;
+
+            ctx.save();
+            ctx.translate(px, py);
+
+            // Soft Bioluminescent Aura around Chloro
+            const glow = ctx.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 2.1);
+            glow.addColorStop(0, 'rgba(163, 230, 53, 0.35)');
+            glow.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(0, 0, r * 2.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Little Sprout on Head
+            ctx.strokeStyle = '#bef264';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(0, -r * 0.78);
+            ctx.quadraticCurveTo(0, -r * 1.25, 9 * state.player.facing, -r * 1.3);
+            ctx.stroke();
+
+            ctx.fillStyle = '#a3e635';
+            ctx.beginPath();
+            ctx.ellipse(8 * state.player.facing, -r * 1.3, 6, 3.2, -0.3 * state.player.facing, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Chloroplast Bean Body
+            const bodyGrad = ctx.createRadialGradient(-6, -6, 4, 0, 0, r * 1.15);
+            bodyGrad.addColorStop(0, '#bef264');
+            bodyGrad.addColorStop(0.55, '#10b981');
+            bodyGrad.addColorStop(1, '#047857');
+
+            ctx.fillStyle = bodyGrad;
+            ctx.strokeStyle = '#a7f3d0';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, r * 1.15, r * 0.88, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner Membrane Dotted Line
+            ctx.strokeStyle = 'rgba(236, 253, 245, 0.5)';
+            ctx.lineWidth = 1.2;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, r * 0.92, r * 0.68, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Eyes (shift slightly toward movement direction)
+            const eyeOffsetX = state.player.facing * 3;
+            ctx.fillStyle = '#022c22';
+            ctx.beginPath();
+            ctx.arc(-7 + eyeOffsetX, -3, 3.6, 0, Math.PI * 2);
+            ctx.arc(7 + eyeOffsetX, -3, 3.6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eye sparkles
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(-6 + eyeOffsetX, -4.2, 1.3, 0, Math.PI * 2);
+            ctx.arc(8 + eyeOffsetX, -4.2, 1.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Rosy Cheeks
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.55)';
+            ctx.beginPath();
+            ctx.ellipse(-12 + eyeOffsetX, 2, 3.5, 2, 0, 0, Math.PI * 2);
+            ctx.ellipse(12 + eyeOffsetX, 2, 3.5, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Happy Smile
+            ctx.strokeStyle = '#022c22';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(eyeOffsetX, 2, 4.5, 0.15 * Math.PI, 0.85 * Math.PI);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawInteractionPrompt() {
+            const target = state.nearestTarget;
+            if (!target || state.screen !== 'PLAYING') return;
+
+            const tx = target.x;
+            const ty = target.y - 44;
+
+            ctx.save();
+            // Dashed ring around target
+            ctx.strokeStyle = '#fde047';
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, target.kind === 'station' ? target.ref.radius + 8 : 25, globalTime * 2, globalTime * 2 + Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Prompt Pill
+            const promptText = target.kind === 'collectible' ? '[BOŞLUK] Topla' : '[BOŞLUK] Etkileşime Geç';
+            ctx.font = 'bold 12px Fredoka, sans-serif';
+            const pw = ctx.measureText(promptText).width + 20;
+
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.95)';
+            ctx.strokeStyle = '#fef9c3';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.roundRect(tx - pw / 2, ty - 13, pw, 26, 13);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#451a03';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(promptText, tx, ty + 1);
+            ctx.restore();
+        }
+
+        function drawParticlesAndText() {
+            // Particles
+            state.particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                if (p.label) {
+                    ctx.strokeStyle = '#e0f2fe';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(p.label, p.x, p.y);
+                }
+                ctx.restore();
+            });
+
+            // Floating Combat/Bio Texts
+            state.floatingTexts.forEach(ft => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, ft.alpha);
+                ctx.font = 'bold 14px Fredoka, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#021710';
+                ctx.fillText(ft.text, ft.x + 1.5, ft.y + 1.5);
+                ctx.fillStyle = ft.color;
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            });
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, width, height);
+            drawBackground();
+            drawStations();
+            drawCollectibles();
+            drawPlayerChloro();
+            drawInteractionPrompt();
+            drawParticlesAndText();
+        }
+
+        // ==================== MAIN ANIMATION LOOP ====================
+        function gameLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
+            lastTime = timestamp;
+
+            update(dt);
+            render();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ==================== EVENT LISTENERS (KEYBOARD & TOUCH) ====================
+        window.addEventListener('keydown', (e) => {
+            const k = e.key.toLowerCase();
+            if (k === 'w' || e.key === 'ArrowUp') keys.up = true;
+            if (k === 's' || e.key === 'ArrowDown') keys.down = true;
+            if (k === 'a' || e.key === 'ArrowLeft') keys.left = true;
+            if (k === 'd' || e.key === 'ArrowRight') keys.right = true;
+
+            if (e.code === 'Space') {
+                if (state.screen === 'PLAYING') {
+                    e.preventDefault();
+                    triggerInteraction();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const k = e.key.toLowerCase();
+            if (k === 'w' || e.key === 'ArrowUp') keys.up = false;
+            if (k === 's' || e.key === 'ArrowDown') keys.down = false;
+            if (k === 'a' || e.key === 'ArrowLeft') keys.left = false;
+            if (k === 'd' || e.key === 'ArrowRight') keys.right = false;
+        });
+
+        // Touch D-Pad Binding Helper
+        function bindDirectionBtn(btnId, dirKey) {
+            const btn = document.getElementById(btnId);
+            const press = (e) => {
+                e.preventDefault();
+                keys[dirKey] = true;
+                btn.classList.add('active');
+            };
+            const release = (e) => {
+                e.preventDefault();
+                keys[dirKey] = false;
+                btn.classList.remove('active');
+            };
+            btn.addEventListener('touchstart', press, { passive: false });
+            btn.addEventListener('touchend', release, { passive: false });
+            btn.addEventListener('touchcancel', release, { passive: false });
+            btn.addEventListener('mousedown', press);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+        }
+
+        bindDirectionBtn('btn-up', 'up');
+        bindDirectionBtn('btn-down', 'down');
+        bindDirectionBtn('btn-left', 'left');
+        bindDirectionBtn('btn-right', 'right');
+
+        const btnAction = document.getElementById('btn-action');
+        btnAction.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            btnAction.classList.add('active');
+            triggerInteraction();
+        }, { passive: false });
+        btnAction.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            btnAction.classList.remove('active');
+        }, { passive: false });
+        btnAction.addEventListener('click', (e) => {
+            e.preventDefault();
+            triggerInteraction();
+        });
+
+        // UI Modal Buttons
+        document.getElementById('btn-start-game').addEventListener('click', () => {
+            sfx.init();
+            sfx.playCollect();
+            startScreen.classList.add('hidden');
+            hudBar.classList.remove('hidden');
+            touchControls.classList.remove('hidden');
+            state.screen = 'PLAYING';
+            resizeCanvas();
+            initStage1();
+        });
+
+        document.getElementById('btn-next-stage').addEventListener('click', () => {
+            sfx.playCollect();
+            stage1Modal.classList.add('hidden');
+            touchControls.classList.remove('hidden');
+            state.screen = 'PLAYING';
+            initStage2();
+        });
+
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            sfx.playCollect();
+            victoryModal.classList.add('hidden');
+            touchControls.classList.remove('hidden');
+            state.screen = 'PLAYING';
+            initStage1();
+        });
+
+        // Sound Toggle
+        const btnSound = document.getElementById('btn-sound-toggle');
+        btnSound.addEventListener('click', () => {
+            sfx.muted = !sfx.muted;
+            btnSound.textContent = sfx.muted ? '🔇' : '🔊';
+        });
+
+        // Help Modal Toggle
+        document.getElementById('btn-info-toggle').addEventListener('click', () => {
+            helpModal.classList.remove('hidden');
+        });
+        document.getElementById('btn-close-help').addEventListener('click', () => {
+            helpModal.classList.add('hidden');
+        });
+        document.getElementById('btn-ok-help').addEventListener('click', () => {
+            helpModal.classList.add('hidden');
+        });
+
+        // Initialize on Window Load
+        window.onload = function () {
+            resizeCanvas();
+            initStage1();
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
